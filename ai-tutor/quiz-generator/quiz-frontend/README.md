@@ -1,16 +1,40 @@
-# React + Vite
+# AI Quiz Generator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
+This project generates MCQ quizzes using AI based on a given topic or uploaded PDF.
 
-Currently, two official plugins are available:
+## Features
+- Generate 10 MCQ questions from a topic
+- Generate quiz from uploaded PDF
+- AI-powered question generation using LLM (Llama 3.2)
+- Clean React + FastAPI architecture
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
+- Frontend: React + Vite
+- Backend: FastAPI
+- AI Model: Llama 3.2 (Ollama)
+- Vector DB: ChromaDB
+- Embeddings: Sentence Transformers
 
-## React Compiler
+## How it works
+1. User enters topic or uploads PDF
+2. Backend processes input
+3. AI generates questions
+4. Frontend displays quiz
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Run Project
 
-## Expanding the ESLint configuration
+### Backend
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+pip install -r requirements.txt
+python main.py
+
+
+### Frontend
+
+npm install
+npm run dev
+
+
+## Author
+Built for AI Hackathon Project
