@@ -1,0 +1,78 @@
+.avatar-wrapper{
+    position: fixed;
+    top: 25px;
+    left: 55%;
+    transform: translateX(-50%);
+    z-index: 5;   /* IMPORTANT CHANGE */
+    pointer-events: none;
+}
+
+.avatar{
+
+    width:260px;
+
+    height:auto;
+
+    background:transparent;
+
+    border:none;
+
+    box-shadow:none;
+
+    animation:float 4s ease-in-out infinite;
+
+    transition:transform .2s;
+
+}
+
+/* Avatar talks */
+
+.avatar.talking{
+
+    animation:
+        float 4s ease-in-out infinite,
+        talk .18s infinite alternate;
+
+}
+
+/* Floating */
+
+@keyframes float{
+
+    0%{
+
+        transform:translateY(0px);
+
+    }
+
+    50%{
+
+        transform:translateY(-12px);
+
+    }
+
+    100%{
+
+        transform:translateY(0px);
+
+    }
+
+}
+
+/* Talking */
+
+@keyframes talk{
+
+    from{
+
+        transform:translateY(0px) scale(1);
+
+    }
+
+    to{
+
+        transform:translateY(-3px) scale(1.03);
+
+    }
+
+}
