@@ -1,0 +1,87 @@
+.avatar-panel{
+
+    width:320px;
+
+    background:white;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:flex-start;
+
+    padding:px;
+
+    border-left:1px solid #ececec;
+
+}
+
+.avatar-video{
+
+    width:260px;
+
+    border-radius:25px;
+
+    object-fit:cover;
+
+    margin-top:20px;
+
+}
+
+.avatar-card{
+
+    margin-top:20px;
+
+    background:white;
+
+    width:220px;
+
+    border-radius:20px;
+
+    text-align:center;
+
+    padding:10px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+}
+
+.status{
+
+    color:#555;
+
+    margin-top:8px;
+
+}
+
+.dot{
+
+    width:10px;
+
+    height:10px;
+
+    background:#14c55a;
+
+    border-radius:50%;
+
+    display:inline-block;
+
+    margin-right:8px;
+
+}
+
+.help-card{
+
+    margin-top:30px;
+
+    background:#f4f7ff;
+
+    padding:20px;
+
+    border-radius:18px;
+
+    line-height:1.8;
+
+}

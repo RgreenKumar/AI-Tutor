@@ -1,0 +1,72 @@
+.profile-box{
+
+    width:90%;
+    margin:15px auto;
+
+    background:#ffffff;
+
+    border-radius:12px;
+
+    padding:12px;
+
+    box-shadow:0 3px 10px rgba(0,0,0,.12);
+
+}
+
+.profile-top{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+.profile-icon{
+
+    font-size:38px;
+
+    color:#4f46e5;
+
+}
+
+.profile-top h4{
+
+    margin:0;
+
+    font-size:15px;
+
+}
+
+.profile-top p{
+
+    margin:2px 0 0;
+
+    font-size:12px;
+
+    color:gray;
+
+}
+
+.logout-btn{
+
+    width:100%;
+
+    margin-top:10px;
+
+    padding:8px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#ef4444;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-size:14px;
+
+}
