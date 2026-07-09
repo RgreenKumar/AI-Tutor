@@ -1,51 +1,118 @@
-﻿import { useState } from "react";
+﻿import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { isLoggedIn } from "../services/auth";
 
 import Sidebar from "../components/Sidebar";
 import ChatWindow from "../components/ChatWindow";
 import AvatarPanel from "../components/AvatarPanel";
-
+import PdfModeModal from "../components/PdfModeModal";
+import PdfManager from "./PdfManager";
+import axios from "axios";
 import "./Tutor.css";
 
 function Tutor() {
 
-    const [speaking, setSpeaking] = useState(false);
+  const navigate = useNavigate();
 
-    const [mode, setMode] = useState("ai");
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      navigate("/");
+    }
+  }, [navigate]);
 
-    const [selectedSubject, setSelectedSubject] = useState("");
+  const [speaking, setSpeaking] = useState(false);
 
-    const [selectedChat, setSelectedChat] = useState(null);
+  const [mode, setMode] = useState("ai");
 
-    return (
+  const [selectedSubject, setSelectedSubject] = useState("");
 
-        <div className="home">
+  const [selectedChat, setSelectedChat] = useState(null);
 
-            <Sidebar
-                selectedSubject={selectedSubject}
-                setSelectedSubject={setSelectedSubject}
-                onSelectChat={setSelectedChat}
-            />
+  const [showPdfModal, setShowPdfModal] = useState(false);
 
-            <div className="chat-section">
+  const [pdfView, setPdfView] = useState("chat");
+  
+  const [pdfs, setPdfs] = useState([]);
 
-                <ChatWindow
-                    setSpeaking={setSpeaking}
-                    mode={mode}
-                    selectedSubject={selectedSubject}
-                    selectedChat={selectedChat}
-                />
+async function loadPDFs() {
 
-            </div>
+    try {
 
-            <AvatarPanel
-                speaking={speaking}
-                mode={mode}
-                setMode={setMode}
-            />
+        const response = await axios.get(
+            "http://localhost:8000/pdfs"
+        );
 
-        </div>
+        setPdfs(response.data);
 
-    );
+    }
+
+    catch(err){
+
+        console.log(err);
+
+    }
+
+}
+
+useEffect(() => {
+
+    loadPDFs();
+
+}, []);
+  return (
+
+    <div className="home">
+
+      {/* LEFT SIDEBAR */}
+      <Sidebar
+    pdfs={pdfs}
+    selectedSubject={selectedSubject}
+    setSelectedSubject={setSelectedSubject}
+    onSelectChat={setSelectedChat}
+/>
+      {/* CENTER PANEL */}
+  
+<div className="chat-section">
+
+  {pdfView === "manager" ? (
+
+    <PdfManager
+      pdfs={pdfs}
+      loadPDFs={loadPDFs}
+    />
+
+  ) : (
+
+    <ChatWindow
+      setSpeaking={setSpeaking}
+      mode={mode}
+      selectedSubject={selectedSubject}
+      selectedChat={selectedChat}
+    />
+
+  )}
+
+</div>
+      {/* RIGHT PANEL */}
+      <AvatarPanel
+        speaking={speaking}
+        mode={mode}
+        setMode={setMode}
+        setShowPdfModal={setShowPdfModal}
+      />
+
+      {/* PDF POPUP */}
+      {showPdfModal && (
+        <PdfModeModal
+          setMode={setMode}
+          setPdfView={setPdfView}
+          setShowPdfModal={setShowPdfModal}
+        />
+      )}
+
+    </div>
+
+  );
 
 }
 

@@ -1,126 +1,122 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { FaTrash } from "react-icons/fa";
-import "./Sidebar.css"
+import "./Sidebar.css";
+
 function Sidebar({
-    selectedSubject,
-    setSelectedSubject,
-    onSelectChat
+  pdfs,
+  selectedSubject,
+  setSelectedSubject,
+  onSelectChat
 }) {
 
-    const [chats, setChats] = useState([]);
+  const [chats, setChats] = useState([]);
 
-    const subjects = [
-        "Operating System",
-        "Data Structures",
-        "DBMS",
-        "Computer Networks"
-    ];
+  useEffect(() => {
+    fetchChats();
+  }, []);
 
-    useEffect(() => {
-        fetchChats();
-    }, []);
+  async function fetchChats() {
 
-    async function fetchChats() {
+    try {
 
-        try {
+      const res = await fetch("http://localhost:8000/chats");
 
-            const res = await fetch("http://localhost:8000/chats");
+      const data = await res.json();
 
-            const data = await res.json();
+      setChats(data);
 
-            setChats(data);
+    } catch (err) {
 
-        } catch (err) {
-
-            console.log(err);
-
-        }
+      console.log(err);
 
     }
 
-    async function deleteChat(chatId) {
+  }
 
-        const confirmDelete = window.confirm(
-            "Delete this chat?"
-        );
+  async function deleteChat(chatId) {
 
-        if (!confirmDelete) return;
+    if (!window.confirm("Delete this chat?")) return;
 
-        await fetch(
-            `http://localhost:8000/chat/${chatId}`,
-            {
-                method: "DELETE",
+    await fetch(`http://localhost:8000/chat/${chatId}`, {
+      method: "DELETE"
+    });
+
+    fetchChats();
+
+  }
+
+  return (
+
+    <div className="sidebar">
+
+      <h2>📚 AI Tutor</h2>
+
+      {pdfs.map((pdf) => {
+
+        const subject = pdf.name.replace(".pdf", "");
+
+        return (
+
+          <button
+            key={pdf.name}
+            className={
+              selectedSubject === subject
+                ? "active-subject"
+                : "subject-btn"
             }
+            onClick={() => setSelectedSubject(subject)}
+          >
+            {subject}
+          </button>
+
         );
 
-        fetchChats();
+      })}
 
-    }
+      <hr />
 
-    return (
+      <div className="recent-section">
 
-        <div className="sidebar">
+        <h3>Recent Chats</h3>
 
-            <h2>📚 AI Tutor</h2>
+        {chats.length === 0 ? (
 
-            {subjects.map(subject => (
+          <p className="no-chat">
+            No recent chats
+          </p>
 
-                <button
-                    key={subject}
-                    className={
-                        selectedSubject === subject
-                            ? "active-subject"
-                            : "subject-btn"
-                    }
-                    onClick={() => setSelectedSubject(subject)}
-                >
-                    {subject}
-                </button>
+        ) : (
 
-            ))}
+          chats.map(chat => (
 
-            <hr />
+            <div
+              key={chat.chat_id}
+              className="chat-card"
+            >
 
-            <div className="recent-section">
+              <span
+                className="chat-title"
+                onClick={() => onSelectChat(chat.chat_id)}
+              >
+                {chat.title}
+              </span>
 
-                <h3>Recent Chats</h3>
-
-                {chats.length === 0 && (
-
-                    <p className="no-chat">
-                        No recent chats
-                    </p>
-
-                )}
-
-                {chats.map(chat => (
-
-                    <div
-                        key={chat.chat_id}
-                        className="chat-card"
-                    >
-
-                        <span
-                            className="chat-title"
-                            onClick={() => onSelectChat(chat.chat_id)}
-                        >
-                            {chat.title}
-                        </span>
-
-                        <FaTrash
-                            className="delete-icon"
-                            onClick={() => deleteChat(chat.chat_id)}
-                        />
-
-                    </div>
-
-                ))}
+              <FaTrash
+                className="delete-icon"
+                onClick={() => deleteChat(chat.chat_id)}
+              />
 
             </div>
 
-        </div>
+          ))
 
-    );
+        )}
+
+      </div>
+
+    </div>
+
+  );
 
 }
 

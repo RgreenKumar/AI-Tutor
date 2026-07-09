@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
+import ProfileCard from "./ProfileCard";
 import "./AvatarPanel.css";
 
 function AvatarPanel({
   speaking,
   mode,
-  setMode
+  setMode,
+  setShowPdfModal
 }) {
 
   const videoRef = useRef(null);
@@ -71,10 +73,10 @@ function AvatarPanel({
         <label>
 
           <input
-            type="radio"
-            checked={mode === "pdf"}
-            onChange={() => setMode("pdf")}
-          />
+  type="radio"
+  checked={mode === "pdf"}
+  onChange={() => setShowPdfModal(true)}
+/>
 
           PDF Tutor
 
@@ -93,7 +95,7 @@ function AvatarPanel({
         </label>
 
       </div>
-
+      <ProfileCard/>
     </div>
 
   );
