@@ -24,13 +24,9 @@ function App() {
     }
   });
   const [timeLeft, setTimeLeft] = useState(0);
-  const [startTime, setStartTime] = useState(null);
   const timerRef = useRef(null);
   const controllerRef = useRef(null);
   const [bursts, setBursts] = useState({});
-  const [expandedExplanations, setExpandedExplanations] = useState({});
-  const [statusMessage, setStatusMessage] = useState("");
-  const [overlayStyle, setOverlayStyle] = useState("");
 
   const answeredCount = Object.keys(answered).length;
   const completed = quiz.length > 0 && answeredCount === quiz.length;
@@ -88,42 +84,24 @@ function App() {
     try {
       const topicKey = topic || pdfTopic || "General";
       const stored = JSON.parse(localStorage.getItem("quiz_performance") || "{}");
-      const prev = stored[topicKey] || { attempts: 0, correct: 0, total: 0, attemptsList: [], totalStudyTime: 0, bestScore: 0 };
-      const duration = startTime ? Math.max(0, Math.round((Date.now() - startTime) / 1000)) : 0;
-      const attemptRecord = { correct: correctCount, total: quiz.length, timestamp: Date.now(), duration };
-
-      const attemptsList = Array.isArray(prev.attemptsList) ? prev.attemptsList.concat([attemptRecord]) : [attemptRecord];
-      const attempts = (prev.attempts || 0) + 1;
-      const totalCorrect = (prev.correct || 0) + correctCount;
-      const totalQuestions = (prev.total || 0) + quiz.length;
-      const bestScore = Math.max(prev.bestScore || 0, quiz.length > 0 ? Math.round((correctCount / quiz.length) * 100) : 0);
-      const totalStudyTime = (prev.totalStudyTime || 0) + duration;
-
+      const prev = stored[topicKey] || { attempts: 0, correct: 0, total: 0 };
       stored[topicKey] = {
-        attempts,
-        correct: totalCorrect,
-        total: totalQuestions,
-        attemptsList,
-        totalStudyTime,
-        bestScore,
-        lastAttempt: attemptRecord.timestamp,
+        attempts: prev.attempts + 1,
+        correct: prev.correct + correctCount,
+        total: prev.total + quiz.length,
       };
-
       localStorage.setItem("quiz_performance", JSON.stringify(stored));
     } catch {
       // ignore storage errors
     }
   };
 
-  const resetSession = (keepMode = false, saveCompleted = false) => {
+  const resetSession = (keepMode = false) => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
     if (controllerRef.current) {
       controllerRef.current.abort();
-    }
-    if (saveCompleted && quiz.length > 0 && completed) {
-      savePerformance();
     }
     setQuiz([]);
     setAnswered({});
@@ -142,8 +120,6 @@ function App() {
   const fetchQuiz = async (endpoint, body, isForm = false) => {
     try {
       setErrorMessage("");
-      setStatusMessage("Generating quiz...");
-      setOverlayStyle((s) => s || "spinner");
       setLoading(true);
       const controller = new AbortController();
       controllerRef.current = controller;
@@ -161,7 +137,6 @@ function App() {
         setAnswered({});
         setScore(0);
         setView("dashboard");
-        setStartTime(Date.now());
       } else {
         setErrorMessage(data.error || "Quiz generation failed. Please try again.");
       }
@@ -172,23 +147,7 @@ function App() {
       }
     } finally {
       setLoading(false);
-      setStatusMessage("");
-      setOverlayStyle("");
     }
-  };
-
-  const generateQuizForTopic = (topicName) => {
-    if (!topicName) return;
-    // trigger API with topicName directly
-    setStatusMessage(`Generating quiz for "${topicName}"...`);
-    setOverlayStyle("button");
-    fetchQuiz(
-      "http://127.0.0.1:8000/generate-quiz",
-      JSON.stringify({ topic: topicName, num_questions: settings.numQuestions }),
-    );
-    // keep UI mode/topic state reflecting this
-    setMode("topic");
-    setTopic(topicName);
   };
 
   const generateQuiz = () => {
@@ -230,66 +189,12 @@ function App() {
         delete next[index];
         return next;
       }), 800);
-    } else {
-      // expand explanation automatically for wrong answers when available
-      setExpandedExplanations((prev) => ({ ...prev, [index]: true }));
-    }
-  };
-
-  const continuePractice = () => {
-    // save current attempt then immediately generate another quiz with same mode/topic
-    savePerformance();
-    // keep mode and topic, generate a new quiz using the same generator
-    if (mode === "pdf") {
-      // if file still present use PDF flow, otherwise fallback to topic
-      if (file && pdfTopic.trim()) {
-        generatePdfQuiz();
-        return;
-      }
-    }
-    if (topic && topic.trim()) {
-      generateQuiz();
     }
   };
 
   const handleFinish = () => {
     savePerformance();
     setView("performance");
-  };
-
-  const QuizSummary = () => {
-    if (!completed) return null;
-    const timeTaken = startTime ? Math.max(0, Math.round((Date.now() - startTime) / 1000)) : 0;
-    const avgTime = quiz.length > 0 ? Math.round(timeTaken / quiz.length) : 0;
-    // previous accuracy (before current attempt)
-    let previousAccuracy = 0;
-    try {
-      const stored = JSON.parse(localStorage.getItem("quiz_performance") || "{}");
-      const prev = stored[topic || pdfTopic || "General"] || null;
-      if (prev && prev.total && prev.total > 0) previousAccuracy = Math.round((prev.correct / prev.total) * 100);
-    } catch {}
-
-    const improvement = previousAccuracy ? (percentage - previousAccuracy) : percentage;
-
-    const strengths = quiz.filter((q, i) => answered[i] && answered[i].isCorrect).slice(0,3).map(q=>q.question);
-    const weak = quiz.filter((q, i) => answered[i] && !answered[i].isCorrect).slice(0,3).map(q=>q.question);
-
-    return (
-      <div className="quiz-summary">
-        <h3>Quiz Summary</h3>
-        <div className="summary-grid">
-          <div className="summary-card"><strong>{score}/{quiz.length}</strong><span>Score</span></div>
-          <div className="summary-card"><strong>{percentage}%</strong><span>Accuracy</span></div>
-          <div className="summary-card"><strong>{timeTaken}s</strong><span>Time taken</span></div>
-          <div className="summary-card"><strong>{avgTime}s</strong><span>Avg / question</span></div>
-        </div>
-        <div className="summary-details">
-          <p><strong>Progress:</strong> {previousAccuracy}% → {percentage}% ({improvement >= 0 ? '+' : ''}{improvement} pts)</p>
-          <p><strong>Strengths:</strong> {strengths.length ? strengths.join('; ') : '—'}</p>
-          <p><strong>Focus:</strong> {weak.length ? weak.join('; ') : '—'}</p>
-        </div>
-      </div>
-    );
   };
 
   if (view === "performance") {
@@ -300,34 +205,11 @@ function App() {
           localStorage.removeItem("quiz_performance");
           setView("dashboard");
         }}
-        onContinue={(topicName) => {
-          // Close performance view and start a quiz for the clicked topic
-          setView("dashboard");
-          generateQuizForTopic(topicName);
-        }}
       />
     );
   }
 
   return (
-    <>
-      {loading && (
-        <div className="loading-overlay" role="status" aria-live="polite">
-          {overlayStyle === "button" ? (
-            <div className="loading-box">
-              <button className="loading-button" disabled>
-                <span className="spinner" aria-hidden />
-                <span>{statusMessage || 'Please wait...'}</span>
-              </button>
-            </div>
-          ) : (
-            <div className="loading-box">
-              <div className="spinner" aria-hidden />
-              <div className="loading-text">{statusMessage || 'Generating quiz...'}</div>
-            </div>
-          )}
-        </div>
-      )}
     <div className="app-layout">
       <aside className="sidebar">
         <div className="brand-panel">
@@ -479,60 +361,13 @@ function App() {
                       })}
                     </div>
 
-                    {answer && answer.isCorrect && (
-                      <div className={`feedback correct`}>
-                        Correct!
+                    {answer && (
+                      <div className={`feedback ${answer.isCorrect ? "correct" : "wrong"}`}>
+                        {answer.isCorrect ? "Correct!" : `Wrong — correct answer: ${question.answer}`}
                       </div>
                     )}
 
                     {bursts[index] && <div className="burst">✨</div>}
-
-                    {answer && (
-                      <div className="explanation-wrapper">
-                        <button
-                          className="explain-toggle"
-                          onClick={() => setExpandedExplanations((s) => ({ ...s, [index]: !s[index] }))}
-                        >
-                          {expandedExplanations[index] ? 'Hide explanation' : 'Show explanation'}
-                        </button>
-
-                        {expandedExplanations[index] && (
-                          <div className="explanation-card">
-                            <div className="explain-row">
-                              <div>
-                                <h4>Correct answer</h4>
-                                <div className="correct-answer">{question.answer}</div>
-                              </div>
-                              <div>
-                                <h4>Your answer</h4>
-                                <div className="your-answer">{answer.selected}</div>
-                              </div>
-                            </div>
-
-                            {question.explanation && (
-                              <div className="explain-block">
-                                <strong>Explanation</strong>
-                                <p>{question.explanation}</p>
-                              </div>
-                            )}
-
-                            {question.explanations && question.explanations[answer.selected] && (
-                              <div className="explain-block">
-                                <strong>Why your selected option is incorrect</strong>
-                                <p>{question.explanations[answer.selected]}</p>
-                              </div>
-                            )}
-
-                            {question.explanations && question.explanations[question.answer] && (
-                              <div className="explain-block">
-                                <strong>Why the correct option is correct</strong>
-                                <p>{question.explanations[question.answer]}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -540,8 +375,7 @@ function App() {
 
             {completed && (
               <div className="finish-panel">
-                <button className="btn secondary" onClick={() => resetSession(false, true)}>Restart quiz</button>
-                <button className="btn primary" onClick={continuePractice}>Continue practice</button>
+                <button className="btn secondary" onClick={() => resetSession(false)}>Restart quiz</button>
                 <button className="btn danger" onClick={handleFinish}>Finish & view performance</button>
               </div>
             )}
@@ -549,7 +383,6 @@ function App() {
         )}
       </main>
     </div>
-    </>
   );
 }
 
