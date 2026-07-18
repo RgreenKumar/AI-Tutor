@@ -17,7 +17,7 @@ def retrieve_relevant_chunk(question, chunks):
             best_score = score
             best_chunk = chunk
 
-    # 👇 IMPORTANT FIX
+
     if best_score < 2:
         return None
 
