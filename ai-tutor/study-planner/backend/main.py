@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine
 from routes.study_planner import router as study_planner_router
+from routes.auth import router as auth_router
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -28,6 +29,7 @@ app.add_middleware(
 )
 
 # Register routes
+app.include_router(auth_router)
 app.include_router(study_planner_router)
 
 
